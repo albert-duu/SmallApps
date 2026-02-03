@@ -5,7 +5,7 @@ import json
 # 设置页面标题
 st.set_page_config(page_title="酒店积分价值计算器", page_icon="🏨")
 st.title("🏨 Marriott Points value check")
-st.write("输入积分与现金价格，快速判断是否值得兑换（基准线：0.8 美分/分）。")
+st.write("输入积分与现金价格，快速判断是否值得兑换")
 
 @st.cache_data(ttl=86400)  # cache for 1 day
 def get_exchange_rate(currency_code):
@@ -14,8 +14,7 @@ def get_exchange_rate(currency_code):
     data = json.loads(response.read())
     return data['rates']['USD']
 
-# 创建两列布局让界面更紧凑
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     points = st.number_input("所需积分", min_value=1, value=40000, step=1000)
@@ -26,8 +25,10 @@ with col3:
         "JPY", "USD", "EUR", "GBP", "CNY", "CAD", "AUD", "CHF", "HKD", "SGD", 
         "NZD", "KRW", "INR", "TWD", "THB", "MXN", "ZAR", "BRL", "SEK", "NOK"
     ])
- 
-# 点击按钮触发计算
+with col4:
+    target_cpp = st.number_input("目标基准线 (cpp)", min_value=0.1, max_value=5.0, value=0.8, step=0.1)
+
+# click button to start calculation
 if st.button("开始计算 ✨", type="primary"):
     with st.spinner('正在获取实时汇率...'):
         try:
@@ -40,11 +41,11 @@ if st.button("开始计算 ✨", type="primary"):
             st.markdown("---")
             
             # 展示主要结果
-            if cpp > 0.8:
-                st.success(f"✅ 划算！当前积分价值为 **{cpp:.2f} 美分/分**，高于 0.8 的标准。")
+            if cpp > target_cpp:
+                st.success(f"✅ 划算！当前积分价值为 **{cpp:.2f} 美分/分**，高于你设定的 {target_cpp} 美分标准。")
                 st.balloons() # 增加庆祝特效
             else:
-                st.error(f"❌ 不划算！当前积分价值仅为 **{cpp:.2f} 美分/分**，建议使用现金预订。")
+                st.error(f"❌ 不划算！当前积分价值仅为 **{cpp:.2f} 美分/分**，低于你设定的 {target_cpp} 美分标准，建议使用现金预订。")
 
             # 展示数据明细
             col_res1, col_res2, col_res3 = st.columns(3)
